@@ -22,7 +22,7 @@ export function Calendar ({ events }: Props): JSX.Element {
   const { openModal } = useUiStore()
 
   useEffect(() => {
-    const currentView= searchParams.get('view') || 'agenda'
+    const currentView= searchParams.get('view') || 'month'
     setView(currentView as View)
   }, [searchParams])
 

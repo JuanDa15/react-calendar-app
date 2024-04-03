@@ -1,6 +1,8 @@
 import { useDispatch, useSelector } from "react-redux";
-import { AppStore, addNewEvent, deleteEvent, setActiveEvent, setEvents, setLang, updateEvent } from "../store";
-import { CalendarEvent, Langs } from "../definitions";
+import { AppStore, clearCalendarStore, setActiveEvent, setEvents, setLang } from "../store";
+import { CalendarEvent, Langs, ServerResponse } from "../definitions";
+import { calendarApi } from "../api";
+import { mapEventsToJSData } from "../helpers/map-events-to-js-date";
 
 export default function useCalendarStore() {
   const dispatch = useDispatch()
@@ -9,20 +11,47 @@ export default function useCalendarStore() {
   const setLangFn = (lang: Langs) => dispatch(setLang(lang))
   const setEventsFn = (events: CalendarEvent[]) => dispatch(setEvents(events))
   const setActiveEventFn = (event: CalendarEvent | null) => dispatch(setActiveEvent(event))
-  const addNewEventFn = (event: CalendarEvent) => dispatch(addNewEvent(event))
-  const updateEventFn = (event: CalendarEvent) => dispatch(updateEvent(event))
-  const deleteEventFn = (id: string) => dispatch(deleteEvent(id))
+  const clearCalendarStoreFn = () => dispatch(clearCalendarStore())
 
   const startSavingEvent = async (event: CalendarEvent) => {
     if (event._id) {
-      updateEventFn(event)
+      try {
+        await calendarApi.put(`event/${event._id}`, event)
+        await startLoadingEvents()
+
+      } catch (error) {
+        console.log(error)
+      }
     } else {
-      addNewEventFn({ ...event, _id: crypto.randomUUID() })
+      try {
+        delete event._id
+        await calendarApi.post('event', { ...event })
+        await startLoadingEvents()
+
+      } catch (error) {
+        console.log(error)
+      }
+    }
+  }
+
+  const startLoadingEvents = async () => {
+    try {
+      const resp = await calendarApi.get('event')
+      const { data }: ServerResponse<{ count: number, list: CalendarEvent[] }> = resp.data
+      const mappedData = mapEventsToJSData(data?.list ?? [])
+      setEventsFn(mappedData)
+    } catch (error) {
+      console.log(error)
     }
   }
 
   const startDeletingEvent = async (id: string) => {
-    deleteEventFn(id)
+    try {
+      await calendarApi.delete(`event/${id}`)
+      startLoadingEvents()
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   return {
@@ -32,8 +61,9 @@ export default function useCalendarStore() {
     setLang: setLangFn,
     setEvents: setEventsFn,
     setActiveEvent: setActiveEventFn,
-    addNewEvent: addNewEventFn,
     startSavingEvent,
-    startDeletingEvent
+    startDeletingEvent,
+    startLoadingEvents,
+    clearCalendarStoreFn: clearCalendarStoreFn,
   }
 }

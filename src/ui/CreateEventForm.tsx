@@ -42,12 +42,12 @@ export function CreateEventForm(): JSX.Element {
         notes: activeEvent.notes,
         start: activeEvent.start,
         end: activeEvent.end,
-        _id: activeEvent._id,
+        _id: activeEvent._id ?? null,
         bgColor: activeEvent.bgColor,
       })
     }
   }, [ activeEvent ])
-
+  
   const handleInputChange: ChangeEventHandler<HTMLInputElement|HTMLTextAreaElement> = ({
     target,
   }) => {
@@ -57,32 +57,32 @@ export function CreateEventForm(): JSX.Element {
       [name]: value,
     }));
   };
-
+  
   const handleDateChange = (date: Date | null, inputName: 'start' | 'end') => {
     setFormValues((prev) => ({
       ...prev,
       [inputName]: date,
     }));
   };
-
+  
   const titleClass = useMemo(() => {
     if (!submitted) return ''
     if (formValues.title.length > 0) return ''
     return 'text-red-500 border-red-500 border-[2px]'
   }, [formValues.title, submitted])
-
+  
   const handleSubmit: FormEventHandler = async (event) => {
     event.preventDefault();
     setSubmitted(true)
     if (!formValues.title) return window.alert('Title is required');
-
+    
     const dateDifference = differenceInSeconds(formValues.end!, formValues.start!)
-
+    
     if (isNaN(dateDifference)) return window.alert('Please select a valid date')
     if (dateDifference <= 0) return window.alert('End Date should be higher than start date')
-
-    await startSavingEvent({...formValues, user: { _id: 'efcesvesf', name: 'Carlos'}} as CalendarEvent)
-
+    
+    await startSavingEvent({...formValues} as CalendarEvent)
+    
     setSubmitted(false)
     closeModal()
   }

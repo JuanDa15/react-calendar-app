@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import useCalendarStore from '../../hooks/calendar-hook';
 import { Calendar } from '../../ui/Calendar';
 import { FabAddBtn } from '../../ui/FabAddBtn';
@@ -7,12 +8,17 @@ import { Navbar } from '../../ui/Navbar';
 
 
 export default function CalendarPage(): JSX.Element {
-  const { events } = useCalendarStore()
+  const { events, startLoadingEvents } = useCalendarStore()
+
+  useEffect(()=> {
+    startLoadingEvents()
+  }, [])
+
   return (
     <>
       <Navbar />
       <div className='p-4 bg-slate-500 relative'>
-        <Calendar events={events} />
+        <Calendar events={[...events]} />
         <FabAddBtn />
         <FabDeleteBtn />
       </div>
