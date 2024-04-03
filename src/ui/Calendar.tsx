@@ -26,7 +26,7 @@ export function Calendar ({ events }: Props): JSX.Element {
     setView(currentView as View)
   }, [searchParams])
 
-  const eventStyleGetter: EventPropGetter<CalendarEvent> = (event, start, end, isSelected) => {
+  const eventStyleGetter: EventPropGetter<CalendarEvent> = (event) => {
     const style = {
       backgroundColor: event.bgColor,
     }
